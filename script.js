@@ -1,499 +1,776 @@
-document.addEventListener('DOMContentLoaded', function() {
-    initParticles();
-    initNavbar();
-    initScrollAnimations();
-    initStatCounters();
-    initSkillBars();
-    initContactForm();
-    initScrollTop();
-    initSmoothScroll();
-});
+class AttendanceSystem {
+    constructor() {
+        this.currentUser = null;
+        this.currentRole = null;
+        this.currentClassId = null;
+        this.init();
+    }
 
-function initParticles() {
-    const canvas = document.getElementById('particle-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    const particles = [];
-    const particleCount = 100;
-    
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 2 + 1;
-            this.speedX = Math.random() * 1 - 0.5;
-            this.speedY = Math.random() * 1 - 0.5;
-            this.opacity = Math.random() * 0.5 + 0.2;
-        }
-        
-        update() {
-            this.x += this.speedX;
-            this.y += this.speedY;
-            
-            if (this.x > canvas.width) this.x = 0;
-            if (this.x < 0) this.x = canvas.width;
-            if (this.y > canvas.height) this.y = 0;
-            if (this.y < 0) this.y = canvas.height;
-        }
-        
-        draw() {
-            ctx.fillStyle = `rgba(0, 240, 255, ${this.opacity})`;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
+    init() {
+        this.initializeStorage();
+        this.setupEventListeners();
+        this.checkExistingSession();
+        this.updateCurrentTime();
     }
-    
-    function init() {
-        particles.length = 0;
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-    }
-    
-    function connectParticles() {
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 100) {
-                    ctx.strokeStyle = `rgba(0, 240, 255, ${0.2 * (1 - distance / 100)})`;
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    ctx.stroke();
-                }
-            }
-        }
-    }
-    
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        particles.forEach(particle => {
-            particle.update();
-            particle.draw();
-        });
-        
-        connectParticles();
-        requestAnimationFrame(animate);
-    }
-    
-    init();
-    animate();
-    
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        init();
-    });
-}
 
-function initNavbar() {
-    const hamburger = document.querySelector('.hamburger');
-    const navMenu = document.querySelector('.nav-menu');
-    const navLinks = document.querySelectorAll('.nav-link');
-    const navbar = document.querySelector('.navbar');
-    
-    hamburger.addEventListener('click', () => {
-        hamburger.classList.toggle('active');
-        navMenu.classList.toggle('active');
-    });
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            hamburger.classList.remove('active');
-            navMenu.classList.remove('active');
-        });
-    });
-    
-    let lastScroll = 0;
-    window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        
-        if (currentScroll > 100) {
-            navbar.style.background = 'rgba(10, 14, 39, 0.98)';
-            navbar.style.boxShadow = '0 5px 20px rgba(0, 240, 255, 0.1)';
-        } else {
-            navbar.style.background = 'rgba(10, 14, 39, 0.95)';
-            navbar.style.boxShadow = 'none';
+    initializeStorage() {
+        if (!localStorage.getItem('students')) {
+            localStorage.setItem('students', JSON.stringify([]));
         }
-        
-        lastScroll = currentScroll;
-    });
-    
-    const sections = document.querySelectorAll('section[id]');
-    window.addEventListener('scroll', () => {
-        const scrollY = window.pageYOffset;
-        
-        sections.forEach(section => {
-            const sectionHeight = section.offsetHeight;
-            const sectionTop = section.offsetTop - 100;
-            const sectionId = section.getAttribute('id');
-            
-            if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
-                document.querySelector(`.nav-link[href="#${sectionId}"]`)?.classList.add('active');
-            } else {
-                document.querySelector(`.nav-link[href="#${sectionId}"]`)?.classList.remove('active');
+        if (!localStorage.getItem('teachers')) {
+            localStorage.setItem('teachers', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('classes')) {
+            localStorage.setItem('classes', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('attendance')) {
+            localStorage.setItem('attendance', JSON.stringify([]));
+        }
+    }
+
+    setupEventListeners() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchRole(e.target.dataset.role));
+        });
+
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.toggleAuthForm(e.target));
+        });
+
+        document.getElementById('student-login-form').addEventListener('submit', (e) => this.handleStudentLogin(e));
+        document.getElementById('student-signup-form').addEventListener('submit', (e) => this.handleStudentSignup(e));
+        document.getElementById('teacher-login-form').addEventListener('submit', (e) => this.handleTeacherLogin(e));
+        document.getElementById('teacher-signup-form').addEventListener('submit', (e) => this.handleTeacherSignup(e));
+
+        document.getElementById('student-logout').addEventListener('click', () => this.logout());
+        document.getElementById('teacher-logout').addEventListener('click', () => this.logout());
+
+        document.getElementById('join-class-form').addEventListener('submit', (e) => this.handleJoinClass(e));
+        document.getElementById('create-class-form').addEventListener('submit', (e) => this.handleCreateClass(e));
+
+        document.querySelectorAll('.dash-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchDashboardTab(e.target.dataset.tab));
+        });
+
+        document.querySelectorAll('.modal-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.switchModalTab(e.target.dataset.tab));
+        });
+
+        document.querySelector('.close-modal').addEventListener('click', () => this.closeModal());
+
+        document.getElementById('create-session-form').addEventListener('submit', (e) => this.handleCreateSession(e));
+
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.closeModal();
             }
         });
-    });
-}
+    }
 
-function initScrollAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animation = 'fadeInUp 0.8s ease forwards';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, observerOptions);
-    
-    const animatedElements = document.querySelectorAll('.skill-category, .cert-card, .project-card, .contact-method, .achievement');
-    animatedElements.forEach(el => {
-        el.style.opacity = '0';
-        observer.observe(el);
-    });
-}
+    switchRole(role) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`[data-role="${role}"]`).classList.add('active');
 
-function initStatCounters() {
-    const stats = document.querySelectorAll('.stat-value');
-    let animated = false;
-    
-    const animateStats = () => {
-        if (animated) return;
-        
-        const statsSection = document.querySelector('.hero-stats');
-        const rect = statsSection.getBoundingClientRect();
-        
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-            animated = true;
-            
-            stats.forEach(stat => {
-                const target = parseInt(stat.getAttribute('data-target'));
-                const duration = 2000;
-                const increment = target / (duration / 16);
-                let current = 0;
-                
-                const updateCounter = () => {
-                    current += increment;
-                    if (current < target) {
-                        stat.textContent = Math.floor(current);
-                        requestAnimationFrame(updateCounter);
-                    } else {
-                        stat.textContent = target;
-                    }
-                };
-                
-                updateCounter();
-            });
-        }
-    };
-    
-    window.addEventListener('scroll', animateStats);
-    animateStats();
-}
+        document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+        document.getElementById(`${role}-auth`).classList.add('active');
+    }
 
-function initSkillBars() {
-    const skillBars = document.querySelectorAll('.skill-progress');
-    let animated = false;
-    
-    const animateSkills = () => {
-        const skillsSection = document.querySelector('.skills');
-        if (!skillsSection) return;
-        
-        const rect = skillsSection.getBoundingClientRect();
-        
-        if (rect.top < window.innerHeight && rect.bottom > 0 && !animated) {
-            animated = true;
-            
-            skillBars.forEach((bar, index) => {
-                setTimeout(() => {
-                    const progress = bar.getAttribute('data-progress');
-                    bar.style.width = progress + '%';
-                }, index * 100);
-            });
-        }
-    };
-    
-    window.addEventListener('scroll', animateSkills);
-    animateSkills();
-}
+    toggleAuthForm(btn) {
+        const parent = btn.closest('.auth-form');
+        const formType = btn.dataset.form;
 
-function initContactForm() {
-    const form = document.getElementById('contactForm');
-    const formMessage = document.getElementById('formMessage');
-    
-    if (!form) return;
-    
-    form.addEventListener('submit', (e) => {
+        parent.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        parent.querySelectorAll('.form').forEach(form => form.classList.remove('active'));
+        parent.querySelector(`#${parent.id.replace('-auth', '')}-${formType}-form`).classList.add('active');
+    }
+
+    handleStudentSignup(e) {
         e.preventDefault();
-        
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
-        
-        if (!data.name || !data.email || !data.subject || !data.message) {
-            showFormMessage('Please fill in all fields', 'error');
+        const name = document.getElementById('student-signup-name').value;
+        const email = document.getElementById('student-signup-email').value;
+        const rollNumber = document.getElementById('student-signup-roll').value;
+        const password = document.getElementById('student-signup-password').value;
+
+        const students = JSON.parse(localStorage.getItem('students'));
+
+        if (students.some(s => s.email === email)) {
+            this.showMessage(e.target, 'Email already registered', 'error');
             return;
         }
-        
-        if (!validateEmail(data.email)) {
-            showFormMessage('Please enter a valid email address', 'error');
-            return;
-        }
-        
-        const submitBtn = form.querySelector('.submit-btn');
-        const originalText = submitBtn.querySelector('span').textContent;
-        submitBtn.querySelector('span').textContent = 'SENDING...';
-        submitBtn.disabled = true;
-        
+
+        const student = {
+            id: Date.now().toString(),
+            name,
+            email,
+            rollNumber,
+            password,
+            classes: []
+        };
+
+        students.push(student);
+        localStorage.setItem('students', JSON.stringify(students));
+
+        this.showMessage(e.target, 'Registration successful! Please login.', 'success');
+        e.target.reset();
+
         setTimeout(() => {
-            showFormMessage('Message sent successfully! I\'ll get back to you soon.', 'success');
-            form.reset();
-            submitBtn.querySelector('span').textContent = originalText;
-            submitBtn.disabled = false;
+            const parent = e.target.closest('.auth-form');
+            parent.querySelector('[data-form="login"]').click();
         }, 1500);
-    });
-    
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
     }
-    
-    function showFormMessage(message, type) {
-        formMessage.textContent = message;
-        formMessage.className = `form-message ${type}`;
-        
+
+    handleStudentLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('student-login-email').value;
+        const password = document.getElementById('student-login-password').value;
+
+        const students = JSON.parse(localStorage.getItem('students'));
+        const student = students.find(s => s.email === email && s.password === password);
+
+        if (student) {
+            this.currentUser = student;
+            this.currentRole = 'student';
+            sessionStorage.setItem('currentUser', JSON.stringify(student));
+            sessionStorage.setItem('currentRole', 'student');
+            this.showDashboard('student');
+        } else {
+            this.showMessage(e.target, 'Invalid email or password', 'error');
+        }
+    }
+
+    handleTeacherSignup(e) {
+        e.preventDefault();
+        const name = document.getElementById('teacher-signup-name').value;
+        const email = document.getElementById('teacher-signup-email').value;
+        const department = document.getElementById('teacher-signup-dept').value;
+        const password = document.getElementById('teacher-signup-password').value;
+
+        const teachers = JSON.parse(localStorage.getItem('teachers'));
+
+        if (teachers.some(t => t.email === email)) {
+            this.showMessage(e.target, 'Email already registered', 'error');
+            return;
+        }
+
+        const teacher = {
+            id: Date.now().toString(),
+            name,
+            email,
+            department,
+            password,
+            classes: []
+        };
+
+        teachers.push(teacher);
+        localStorage.setItem('teachers', JSON.stringify(teachers));
+
+        this.showMessage(e.target, 'Registration successful! Please login.', 'success');
+        e.target.reset();
+
         setTimeout(() => {
-            formMessage.className = 'form-message';
+            const parent = e.target.closest('.auth-form');
+            parent.querySelector('[data-form="login"]').click();
+        }, 1500);
+    }
+
+    handleTeacherLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('teacher-login-email').value;
+        const password = document.getElementById('teacher-login-password').value;
+
+        const teachers = JSON.parse(localStorage.getItem('teachers'));
+        const teacher = teachers.find(t => t.email === email && t.password === password);
+
+        if (teacher) {
+            this.currentUser = teacher;
+            this.currentRole = 'teacher';
+            sessionStorage.setItem('currentUser', JSON.stringify(teacher));
+            sessionStorage.setItem('currentRole', 'teacher');
+            this.showDashboard('teacher');
+        } else {
+            this.showMessage(e.target, 'Invalid email or password', 'error');
+        }
+    }
+
+    checkExistingSession() {
+        const user = sessionStorage.getItem('currentUser');
+        const role = sessionStorage.getItem('currentRole');
+
+        if (user && role) {
+            this.currentUser = JSON.parse(user);
+            this.currentRole = role;
+            this.showDashboard(role);
+        }
+    }
+
+    showDashboard(role) {
+        document.getElementById('auth-section').classList.remove('active');
+        if (role === 'student') {
+            document.getElementById('student-dashboard').classList.add('active');
+            document.getElementById('student-name-display').textContent = this.currentUser.name;
+            this.loadStudentClasses();
+        } else {
+            document.getElementById('teacher-dashboard').classList.add('active');
+            document.getElementById('teacher-name-display').textContent = this.currentUser.name;
+            this.loadTeacherClasses();
+            this.loadAttendanceDashboard();
+        }
+    }
+
+    logout() {
+        this.currentUser = null;
+        this.currentRole = null;
+        sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('currentRole');
+
+        document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+        document.getElementById('auth-section').classList.add('active');
+    }
+
+    handleJoinClass(e) {
+        e.preventDefault();
+        const classCode = document.getElementById('class-code').value.trim();
+
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const classData = classes.find(c => c.code === classCode);
+
+        if (!classData) {
+            this.showMessage(e.target, 'Invalid class code', 'error');
+            return;
+        }
+
+        if (classData.students.includes(this.currentUser.id)) {
+            this.showMessage(e.target, 'You are already enrolled in this class', 'error');
+            return;
+        }
+
+        classData.students.push(this.currentUser.id);
+        localStorage.setItem('classes', JSON.stringify(classes));
+
+        const students = JSON.parse(localStorage.getItem('students'));
+        const student = students.find(s => s.id === this.currentUser.id);
+        if (!student.classes) student.classes = [];
+        student.classes.push(classData.id);
+        localStorage.setItem('students', JSON.stringify(students));
+
+        this.currentUser = student;
+        sessionStorage.setItem('currentUser', JSON.stringify(student));
+
+        this.showMessage(e.target, 'Successfully joined the class!', 'success');
+        e.target.reset();
+        this.loadStudentClasses();
+    }
+
+    handleCreateClass(e) {
+        e.preventDefault();
+        const name = document.getElementById('class-name').value;
+        const subject = document.getElementById('class-subject').value;
+        const section = document.getElementById('class-section').value;
+
+        const classes = JSON.parse(localStorage.getItem('classes'));
+
+        const classData = {
+            id: Date.now().toString(),
+            name,
+            subject,
+            section,
+            code: this.generateClassCode(),
+            teacherId: this.currentUser.id,
+            students: [],
+            sessions: []
+        };
+
+        classes.push(classData);
+        localStorage.setItem('classes', JSON.stringify(classes));
+
+        const teachers = JSON.parse(localStorage.getItem('teachers'));
+        const teacher = teachers.find(t => t.id === this.currentUser.id);
+        if (!teacher.classes) teacher.classes = [];
+        teacher.classes.push(classData.id);
+        localStorage.setItem('teachers', JSON.stringify(teachers));
+
+        this.currentUser = teacher;
+        sessionStorage.setItem('currentUser', JSON.stringify(teacher));
+
+        this.showMessage(e.target, `Class created successfully! Code: ${classData.code}`, 'success');
+        e.target.reset();
+        this.loadTeacherClasses();
+    }
+
+    generateClassCode() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    loadStudentClasses() {
+        const container = document.getElementById('student-classes-list');
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const studentClasses = classes.filter(c => c.students.includes(this.currentUser.id));
+
+        if (studentClasses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📚</div>
+                    <h3>No Classes Yet</h3>
+                    <p>Join a class using the class code provided by your teacher</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = studentClasses.map(classData => {
+            const activeSessions = this.getActiveSessionsForClass(classData.id);
+            return `
+                <div class="class-card">
+                    <div class="class-card-header">
+                        <h3 class="class-card-title">${classData.name}</h3>
+                        <p class="class-card-subtitle">${classData.subject} - Section ${classData.section}</p>
+                    </div>
+                    <div class="class-card-info">
+                        <div class="info-item">📋 Code: ${classData.code}</div>
+                        <div class="info-item">👥 ${classData.students.length} students</div>
+                    </div>
+                    ${activeSessions.length > 0 ? `
+                        <div class="class-card-actions">
+                            ${activeSessions.map(session => `
+                                <button class="btn btn-success" onclick="system.markAttendance('${classData.id}', '${session.id}')">
+                                    Mark Present
+                                </button>
+                            `).join('')}
+                        </div>
+                    ` : '<p style="color: #666; font-size: 14px;">No active attendance sessions</p>'}
+                </div>
+            `;
+        }).join('');
+    }
+
+    loadTeacherClasses() {
+        const container = document.getElementById('teacher-classes-list');
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const teacherClasses = classes.filter(c => c.teacherId === this.currentUser.id);
+
+        if (teacherClasses.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📚</div>
+                    <h3>No Classes Yet</h3>
+                    <p>Create your first class to get started</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = teacherClasses.map(classData => `
+            <div class="class-card" onclick="system.openClassModal('${classData.id}')">
+                <div class="class-card-header">
+                    <h3 class="class-card-title">${classData.name}</h3>
+                    <p class="class-card-subtitle">${classData.subject} - Section ${classData.section}</p>
+                </div>
+                <div class="class-card-info">
+                    <div class="info-item">📋 Code: ${classData.code}</div>
+                    <div class="info-item">👥 ${classData.students.length} students</div>
+                    <div class="info-item">📅 ${classData.sessions ? classData.sessions.length : 0} sessions</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    getActiveSessionsForClass(classId) {
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const classData = classes.find(c => c.id === classId);
+        if (!classData || !classData.sessions) return [];
+
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+
+        return classData.sessions.filter(session => {
+            if (session.date !== currentDate) return false;
+
+            const [startHour, startMin] = session.startTime.split(':').map(Number);
+            const [endHour, endMin] = session.endTime.split(':').map(Number);
+            const startMinutes = startHour * 60 + startMin;
+            const endMinutes = endHour * 60 + endMin;
+
+            return currentTime >= startMinutes && currentTime <= endMinutes;
+        });
+    }
+
+    markAttendance(classId, sessionId) {
+        const attendance = JSON.parse(localStorage.getItem('attendance'));
+        
+        const existingRecord = attendance.find(a => 
+            a.studentId === this.currentUser.id && 
+            a.sessionId === sessionId
+        );
+
+        if (existingRecord) {
+            alert('You have already marked attendance for this session');
+            return;
+        }
+
+        const record = {
+            id: Date.now().toString(),
+            studentId: this.currentUser.id,
+            classId: classId,
+            sessionId: sessionId,
+            timestamp: new Date().toISOString(),
+            status: 'present'
+        };
+
+        attendance.push(record);
+        localStorage.setItem('attendance', JSON.stringify(attendance));
+
+        alert('Attendance marked successfully!');
+        this.loadStudentClasses();
+    }
+
+    openClassModal(classId) {
+        this.currentClassId = classId;
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const classData = classes.find(c => c.id === classId);
+
+        document.getElementById('modal-class-title').textContent = classData.name;
+        document.getElementById('modal-subject').textContent = classData.subject;
+        document.getElementById('modal-section').textContent = classData.section;
+        document.getElementById('modal-code').textContent = classData.code;
+        document.getElementById('modal-student-count').textContent = classData.students.length;
+
+        this.loadClassSessions(classId);
+        this.loadClassStudents(classId);
+
+        document.getElementById('class-detail-modal').classList.add('active');
+
+        document.getElementById('session-date').valueAsDate = new Date();
+    }
+
+    closeModal() {
+        document.getElementById('class-detail-modal').classList.remove('active');
+        this.currentClassId = null;
+    }
+
+    switchModalTab(tab) {
+        document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.modal-tab-btn[data-tab="${tab}"]`).classList.add('active');
+
+        document.querySelectorAll('.modal-tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tab}-modal-tab`).classList.add('active');
+    }
+
+    switchDashboardTab(tab) {
+        document.querySelectorAll('.dash-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.dash-tab-btn[data-tab="${tab}"]`).classList.add('active');
+
+        document.querySelectorAll('.dash-tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tab}-tab`).classList.add('active');
+
+        if (tab === 'attendance') {
+            this.loadAttendanceDashboard();
+        }
+    }
+
+    handleCreateSession(e) {
+        e.preventDefault();
+        const date = document.getElementById('session-date').value;
+        const startTime = document.getElementById('session-start-time').value;
+        const endTime = document.getElementById('session-end-time').value;
+
+        if (new Date(`${date} ${startTime}`) >= new Date(`${date} ${endTime}`)) {
+            alert('End time must be after start time');
+            return;
+        }
+
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const classData = classes.find(c => c.id === this.currentClassId);
+
+        if (!classData.sessions) classData.sessions = [];
+
+        const session = {
+            id: Date.now().toString(),
+            date,
+            startTime,
+            endTime,
+            createdAt: new Date().toISOString()
+        };
+
+        classData.sessions.push(session);
+        localStorage.setItem('classes', JSON.stringify(classes));
+
+        alert('Attendance session created successfully!');
+        e.target.reset();
+        this.loadClassSessions(this.currentClassId);
+
+        document.getElementById('session-date').valueAsDate = new Date();
+    }
+
+    loadClassSessions(classId) {
+        const container = document.getElementById('sessions-list');
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const classData = classes.find(c => c.id === classId);
+
+        if (!classData.sessions || classData.sessions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>No attendance sessions created yet</p>
+                </div>
+            `;
+            return;
+        }
+
+        const sessions = classData.sessions.sort((a, b) => 
+            new Date(`${b.date} ${b.startTime}`) - new Date(`${a.date} ${a.startTime}`)
+        );
+
+        container.innerHTML = sessions.map(session => {
+            const status = this.getSessionStatus(session);
+            const attendance = this.getSessionAttendance(classId, session.id);
+            
+            return `
+                <div class="session-card ${status}">
+                    <div class="session-header">
+                        <div>
+                            <strong>📅 ${this.formatDate(session.date)}</strong>
+                            <div class="session-info">⏰ ${session.startTime} - ${session.endTime}</div>
+                        </div>
+                        <span class="status-badge ${status}">${status}</span>
+                    </div>
+                    <div class="session-info">
+                        Present: ${attendance.present} / ${classData.students.length} students
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    getSessionStatus(session) {
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+
+        if (session.date > currentDate) return 'upcoming';
+        if (session.date < currentDate) return 'expired';
+
+        const [startHour, startMin] = session.startTime.split(':').map(Number);
+        const [endHour, endMin] = session.endTime.split(':').map(Number);
+        const startMinutes = startHour * 60 + startMin;
+        const endMinutes = endHour * 60 + endMin;
+
+        if (currentTime < startMinutes) return 'upcoming';
+        if (currentTime > endMinutes) return 'expired';
+        return 'active';
+    }
+
+    getSessionAttendance(classId, sessionId) {
+        const attendance = JSON.parse(localStorage.getItem('attendance'));
+        const sessionAttendance = attendance.filter(a => 
+            a.classId === classId && a.sessionId === sessionId
+        );
+
+        return {
+            present: sessionAttendance.length,
+            records: sessionAttendance
+        };
+    }
+
+    loadClassStudents(classId) {
+        const container = document.getElementById('class-students-list');
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const students = JSON.parse(localStorage.getItem('students'));
+        const classData = classes.find(c => c.id === classId);
+
+        if (classData.students.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>No students enrolled yet</p>
+                </div>
+            `;
+            return;
+        }
+
+        const classStudents = students.filter(s => classData.students.includes(s.id));
+
+        container.innerHTML = classStudents.map(student => {
+            const studentAttendance = this.calculateStudentAttendance(classId, student.id);
+            return `
+                <div class="student-item">
+                    <div class="student-info">
+                        <h4>${student.name}</h4>
+                        <p>Roll: ${student.rollNumber} | Email: ${student.email}</p>
+                    </div>
+                    <div>
+                        <span class="status-badge ${studentAttendance.percentage >= 75 ? 'present' : 'absent'}">
+                            ${studentAttendance.percentage.toFixed(1)}% Attendance
+                        </span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    calculateStudentAttendance(classId, studentId) {
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const attendance = JSON.parse(localStorage.getItem('attendance'));
+        const classData = classes.find(c => c.id === classId);
+
+        if (!classData.sessions || classData.sessions.length === 0) {
+            return { present: 0, total: 0, percentage: 0 };
+        }
+
+        const totalSessions = classData.sessions.length;
+        const presentSessions = attendance.filter(a => 
+            a.classId === classId && a.studentId === studentId
+        ).length;
+
+        return {
+            present: presentSessions,
+            total: totalSessions,
+            percentage: (presentSessions / totalSessions) * 100
+        };
+    }
+
+    loadAttendanceDashboard() {
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const teacherClasses = classes.filter(c => c.teacherId === this.currentUser.id);
+
+        const filterSelect = document.getElementById('class-filter');
+        filterSelect.innerHTML = '<option value="">Select a class</option>' +
+            teacherClasses.map(c => `<option value="${c.id}">${c.name} - ${c.section}</option>`).join('');
+
+        filterSelect.onchange = (e) => {
+            if (e.target.value) {
+                this.displayClassAttendance(e.target.value);
+            } else {
+                document.getElementById('attendance-overview').innerHTML = '';
+            }
+        };
+    }
+
+    displayClassAttendance(classId) {
+        const container = document.getElementById('attendance-overview');
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const students = JSON.parse(localStorage.getItem('students'));
+        const classData = classes.find(c => c.id === classId);
+
+        if (classData.students.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>No students enrolled in this class</p>
+                </div>
+            `;
+            return;
+        }
+
+        const classStudents = students.filter(s => classData.students.includes(s.id));
+        const totalSessions = classData.sessions ? classData.sessions.length : 0;
+
+        let totalPresent = 0;
+        let totalPossible = totalSessions * classStudents.length;
+
+        const attendanceData = classStudents.map(student => {
+            const attendance = this.calculateStudentAttendance(classId, student.id);
+            totalPresent += attendance.present;
+            return {
+                student,
+                attendance
+            };
+        });
+
+        const averageAttendance = totalPossible > 0 ? (totalPresent / totalPossible * 100).toFixed(1) : 0;
+
+        container.innerHTML = `
+            <div class="attendance-stats">
+                <div class="stat-card">
+                    <div class="stat-value">${classStudents.length}</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalSessions}</div>
+                    <div class="stat-label">Total Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${averageAttendance}%</div>
+                    <div class="stat-label">Average Attendance</div>
+                </div>
+            </div>
+            <div class="attendance-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll Number</th>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Present</th>
+                            <th>Total</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${attendanceData.map(data => `
+                            <tr>
+                                <td>${data.student.rollNumber}</td>
+                                <td>${data.student.name}</td>
+                                <td>${data.student.email}</td>
+                                <td>${data.attendance.present}</td>
+                                <td>${data.attendance.total}</td>
+                                <td>${data.attendance.percentage.toFixed(1)}%</td>
+                                <td>
+                                    <span class="status-badge ${data.attendance.percentage >= 75 ? 'present' : 'absent'}">
+                                        ${data.attendance.percentage >= 75 ? 'Good' : 'Low'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    }
+
+    updateCurrentTime() {
+        const updateTime = () => {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const element = document.getElementById('current-time-display');
+            if (element) {
+                element.textContent = timeString;
+            }
+        };
+
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        setInterval(() => {
+            if (this.currentRole === 'student') {
+                this.loadStudentClasses();
+            }
+        }, 30000);
+    }
+
+    showMessage(form, message, type) {
+        const messageDiv = form.querySelector('.form-message');
+        messageDiv.textContent = message;
+        messageDiv.className = `form-message ${type}`;
+
+        setTimeout(() => {
+            messageDiv.className = 'form-message';
         }, 5000);
     }
-    
-    const inputs = form.querySelectorAll('input, textarea');
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            this.parentElement.classList.add('focused');
-        });
-        
-        input.addEventListener('blur', function() {
-            if (!this.value) {
-                this.parentElement.classList.remove('focused');
-            }
-        });
-    });
 }
 
-function initScrollTop() {
-    const scrollTopBtn = document.getElementById('scrollTop');
-    
-    if (!scrollTopBtn) return;
-    
-    window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) {
-            scrollTopBtn.classList.add('visible');
-        } else {
-            scrollTopBtn.classList.remove('visible');
-        }
-    });
-    
-    scrollTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
-}
-
-function initSmoothScroll() {
-    const links = document.querySelectorAll('a[href^="#"]');
-    
-    links.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            const targetId = link.getAttribute('href');
-            if (targetId === '#') return;
-            
-            const targetSection = document.querySelector(targetId);
-            
-            if (targetSection) {
-                const offsetTop = targetSection.offsetTop - 80;
-                
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-}
-
-document.addEventListener('mousemove', (e) => {
-    const mouseX = e.clientX / window.innerWidth;
-    const mouseY = e.clientY / window.innerHeight;
-    
-    document.querySelectorAll('.project-card').forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const cardX = rect.left + rect.width / 2;
-        const cardY = rect.top + rect.height / 2;
-        
-        const angleX = (e.clientY - cardY) / 50;
-        const angleY = (cardX - e.clientX) / 50;
-        
-        card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
-    });
-});
-
-document.querySelectorAll('.project-card').forEach(card => {
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
-    });
-});
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
-    }
-    
-    .badge-item:nth-child(1) { animation: float 3s ease-in-out infinite; }
-    .badge-item:nth-child(2) { animation: float 3s ease-in-out 0.2s infinite; }
-    .badge-item:nth-child(3) { animation: float 3s ease-in-out 0.4s infinite; }
-    .badge-item:nth-child(4) { animation: float 3s ease-in-out 0.6s infinite; }
-    .badge-item:nth-child(5) { animation: float 3s ease-in-out 0.8s infinite; }
-    .badge-item:nth-child(6) { animation: float 3s ease-in-out 1s infinite; }
-`;
-document.head.appendChild(style);
-
-let ticking = false;
-window.addEventListener('scroll', () => {
-    if (!ticking) {
-        window.requestAnimationFrame(() => {
-            const scrolled = window.pageYOffset;
-            const parallaxElements = document.querySelectorAll('.section-title');
-            
-            parallaxElements.forEach(element => {
-                const speed = 0.5;
-                const rect = element.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) {
-                    element.style.transform = `translateY(${scrolled * speed}px)`;
-                }
-            });
-            
-            ticking = false;
-        });
-        
-        ticking = true;
-    }
-});
-
-const cursor = document.createElement('div');
-cursor.className = 'custom-cursor';
-cursor.style.cssText = `
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--neon-cyan);
-    border-radius: 50%;
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    transition: transform 0.2s ease;
-    display: none;
-`;
-document.body.appendChild(cursor);
-
-document.addEventListener('mousemove', (e) => {
-    cursor.style.display = 'block';
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-});
-
-document.querySelectorAll('a, button, .project-card, .skill-category').forEach(element => {
-    element.addEventListener('mouseenter', () => {
-        cursor.style.transform = 'scale(1.5)';
-        cursor.style.borderColor = 'var(--neon-purple)';
-    });
-    
-    element.addEventListener('mouseleave', () => {
-        cursor.style.transform = 'scale(1)';
-        cursor.style.borderColor = 'var(--neon-cyan)';
-    });
-});
-
-if (window.innerWidth <= 968) {
-    cursor.style.display = 'none';
-}
-
-const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-let konamiIndex = 0;
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        
-        if (konamiIndex === konamiCode.length) {
-            activateEasterEgg();
-            konamiIndex = 0;
-        }
-    } else {
-        konamiIndex = 0;
-    }
-});
-
-function activateEasterEgg() {
-    const body = document.body;
-    body.style.animation = 'rainbow 2s linear infinite';
-    
-    const rainbowStyle = document.createElement('style');
-    rainbowStyle.textContent = `
-        @keyframes rainbow {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(rainbowStyle);
-    
-    const message = document.createElement('div');
-    message.textContent = '🎮 CHEAT CODE ACTIVATED! 🎮';
-    message.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-family: 'Orbitron', sans-serif;
-        font-size: 3rem;
-        color: var(--neon-cyan);
-        z-index: 10000;
-        text-shadow: 0 0 20px var(--neon-cyan);
-        animation: fadeInOut 3s ease;
-    `;
-    document.body.appendChild(message);
-    
-    setTimeout(() => {
-        body.style.animation = '';
-        message.remove();
-        rainbowStyle.remove();
-    }, 3000);
-}
-
-const fadeInOutStyle = document.createElement('style');
-fadeInOutStyle.textContent = `
-    @keyframes fadeInOut {
-        0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    }
-`;
-document.head.appendChild(fadeInOutStyle);
+const system = new AttendanceSystem();
