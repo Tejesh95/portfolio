@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <div class="hero-auth student-hero">
+        <div class="hero-background">
+            <div class="animated-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            </div>
+        </div>
+
+        <nav class="hero-nav">
+            <div class="nav-logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">AttendanceHub</span>
+            </div>
+            <a href="index.html" class="btn btn-outline">← Back to Home</a>
+        </nav>
+
+        <div class="auth-layout">
+            <div class="auth-hero-content">
+                <h1 class="auth-hero-title">
+                    <span class="title-line">Welcome</span>
+                    <span class="title-line">Students!</span>
+                </h1>
+                <p class="auth-hero-description">Join your classes and manage your attendance with ease. Stay connected with your teachers and never miss a session.</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Active Students</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Classes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">99%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-form-container">
+                <div class="auth-card">
+                    <div class="form-toggle-tabs">
+                        <button class="toggle-tab active" data-form="login">Login</button>
+                        <button class="toggle-tab" data-form="signup">Sign Up</button>
+                    </div>
+
+                    <form id="student-login-form" class="auth-form active">
+                        <h2>Student Login</h2>
+                        <div class="form-group">
+                            <label for="student-login-email">
+                                <span class="label-icon">📧</span>
+                                Email Address
+                            </label>
+                            <input type="email" id="student-login-email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-login-password">
+                                <span class="label-icon">🔒</span>
+                                Password
+                            </label>
+                            <input type="password" id="student-login-password" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-animated btn-block">
+                            <span>Login</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                        <div class="form-message"></div>
+                    </form>
+
+                    <form id="student-signup-form" class="auth-form">
+                        <h2>Create Student Account</h2>
+                        <div class="form-group">
+                            <label for="student-signup-name">
+                                <span class="label-icon">👤</span>
+                                Full Name
+                            </label>
+                            <input type="text" id="student-signup-name" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-signup-email">
+                                <span class="label-icon">📧</span>
+                                Email Address
+                            </label>
+                            <input type="email" id="student-signup-email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-signup-roll">
+                                <span class="label-icon">🎫</span>
+                                Roll Number
+                            </label>
+                            <input type="text" id="student-signup-roll" placeholder="Enter your roll number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student-signup-password">
+                                <span class="label-icon">🔒</span>
+                                Password
+                            </label>
+                            <input type="password" id="student-signup-password" placeholder="Create a password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-animated btn-block">
+                            <span>Create Account</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                        <div class="form-message"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cursor-effects.js"></script>
+    <script src="script.js"></script>
+    <script>
+        const system = new AttendanceSystem('student');
+    </script>
+</body>
+</html>
