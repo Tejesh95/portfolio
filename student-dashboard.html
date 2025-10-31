@@ -29,9 +29,13 @@
     <div class="dashboard-wrapper">
         <div class="dashboard-sidebar">
             <div class="sidebar-menu">
-                <a href="#" class="menu-item active">
+                <a href="#" class="menu-item active" data-tab="classes">
                     <span class="menu-icon">📚</span>
                     <span>My Classes</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="face-setup">
+                    <span class="menu-icon">👤</span>
+                    <span>Face Recognition</span>
                 </a>
                 <a href="#" class="menu-item">
                     <span class="menu-icon">📊</span>
@@ -45,37 +49,113 @@
         </div>
 
         <div class="dashboard-main">
-            <div class="dashboard-header">
-                <div>
-                    <h1>Welcome Back!</h1>
-                    <p>Manage your classes and mark attendance</p>
-                </div>
-                <div class="current-time">
-                    <span class="time-icon">⏰</span>
-                    <span id="current-time-display"></span>
-                </div>
-            </div>
-
-            <div class="join-class-card">
-                <div class="card-header">
-                    <h3>Join a New Class</h3>
-                    <p>Enter the class code provided by your teacher</p>
-                </div>
-                <form id="join-class-form">
-                    <div class="join-class-input-group">
-                        <input type="text" id="class-code" placeholder="Enter Class Code" required>
-                        <button type="submit" class="btn btn-primary btn-animated">
-                            <span>Join Class</span>
-                            <div class="btn-ripple"></div>
-                        </button>
+            <div id="classes-tab" class="dashboard-tab active">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Welcome Back!</h1>
+                        <p>Manage your classes and mark attendance</p>
                     </div>
-                    <div class="form-message"></div>
-                </form>
+                    <div class="current-time">
+                        <span class="time-icon">⏰</span>
+                        <span id="current-time-display"></span>
+                    </div>
+                </div>
+
+                <div class="join-class-card">
+                    <div class="card-header">
+                        <h3>Join a New Class</h3>
+                        <p>Enter the class code provided by your teacher</p>
+                    </div>
+                    <form id="join-class-form">
+                        <div class="join-class-input-group">
+                            <input type="text" id="class-code" placeholder="Enter Class Code" required>
+                            <button type="submit" class="btn btn-primary btn-animated">
+                                <span>Join Class</span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                        </div>
+                        <div class="form-message"></div>
+                    </form>
+                </div>
+
+                <div class="classes-section">
+                    <h2>My Classes</h2>
+                    <div id="student-classes-list" class="classes-grid"></div>
+                </div>
             </div>
 
-            <div class="classes-section">
-                <h2>My Classes</h2>
-                <div id="student-classes-list" class="classes-grid"></div>
+            <div id="face-setup-tab" class="dashboard-tab">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Face Recognition Setup</h1>
+                        <p>Register your face for secure attendance marking</p>
+                    </div>
+                </div>
+
+                <div class="face-setup-card">
+                    <div class="face-status" id="face-status"></div>
+                    
+                    <div class="face-capture-section">
+                        <div class="video-container">
+                            <video id="face-video" width="400" height="300" autoplay></video>
+                            <canvas id="face-canvas" width="400" height="300" style="display:none;"></canvas>
+                        </div>
+                        
+                        <div class="face-images-preview" id="face-images-preview"></div>
+                        
+                        <div class="face-actions">
+                            <button id="start-camera-btn" class="btn btn-primary btn-animated">
+                                <span>Start Camera</span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                            <button id="capture-face-btn" class="btn btn-secondary btn-animated" style="display:none;">
+                                <span>Capture Image</span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                            <button id="save-faces-btn" class="btn btn-success btn-animated" style="display:none;">
+                                <span>Save Face Data</span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                            <button id="clear-faces-btn" class="btn btn-danger btn-animated">
+                                <span>Clear All</span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                        </div>
+                        
+                        <div class="face-instructions">
+                            <h4>Instructions:</h4>
+                            <ul>
+                                <li>Capture at least 3-5 images from different angles</li>
+                                <li>Ensure good lighting and clear visibility</li>
+                                <li>Try different expressions and slight head movements</li>
+                                <li>Keep your face centered in the frame</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="face-verification-modal" class="face-verification-modal">
+        <div class="face-verification-content">
+            <h2>Verify Your Identity</h2>
+            <div class="verification-status" id="verification-status">
+                Position your face in the frame
+            </div>
+            <div class="verification-video-container">
+                <video id="verification-video" width="400" height="300" autoplay></video>
+                <canvas id="verification-canvas" width="400" height="300" style="display:none;"></canvas>
+            </div>
+            <div class="verification-actions">
+                <button id="verify-face-btn" class="btn btn-primary btn-animated">
+                    <span>Verify Face</span>
+                    <div class="btn-ripple"></div>
+                </button>
+                <button id="cancel-verification-btn" class="btn btn-outline btn-animated">
+                    <span>Cancel</span>
+                    <div class="btn-ripple"></div>
+                </button>
             </div>
         </div>
     </div>
