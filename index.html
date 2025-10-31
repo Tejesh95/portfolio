@@ -3,258 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Management System</title>
+    <title>Attendance Management System - Home</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="app">
-        <div id="auth-section" class="section active">
-            <div class="auth-container">
-                <div class="auth-header">
-                    <h1>Attendance Management System</h1>
-                    <p>Time-bound attendance tracking for educational institutions</p>
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+    
+    <div id="hero-section" class="hero-landing">
+        <div class="hero-background">
+            <div class="animated-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+                <div class="shape shape-4"></div>
+                <div class="shape shape-5"></div>
+            </div>
+        </div>
+        
+        <nav class="hero-nav">
+            <div class="nav-logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">AttendanceHub</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+        </nav>
+
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">Modern Attendance</span>
+                <span class="title-line">Management System</span>
+            </h1>
+            <p class="hero-subtitle">Time-bound attendance tracking for educational institutions with real-time updates</p>
+            
+            <div class="hero-cards">
+                <div class="hero-card student-card" data-tilt>
+                    <div class="card-icon">🎓</div>
+                    <h3>Student Portal</h3>
+                    <p>Join classes and mark your attendance easily</p>
+                    <a href="student-login.html" class="btn btn-primary btn-animated">
+                        <span>Enter as Student</span>
+                        <div class="btn-ripple"></div>
+                    </a>
                 </div>
-                
-                <div class="auth-tabs">
-                    <button class="tab-btn active" data-role="student">Student</button>
-                    <button class="tab-btn" data-role="teacher">Teacher</button>
-                </div>
 
-                <div class="auth-forms">
-                    <div id="student-auth" class="auth-form active">
-                        <div class="form-toggle">
-                            <button class="toggle-btn active" data-form="login">Login</button>
-                            <button class="toggle-btn" data-form="signup">Sign Up</button>
-                        </div>
-                        
-                        <form id="student-login-form" class="form active">
-                            <h2>Student Login</h2>
-                            <div class="form-group">
-                                <label for="student-login-email">Email</label>
-                                <input type="email" id="student-login-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="student-login-password">Password</label>
-                                <input type="password" id="student-login-password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Login</button>
-                            <div class="form-message"></div>
-                        </form>
-
-                        <form id="student-signup-form" class="form">
-                            <h2>Student Sign Up</h2>
-                            <div class="form-group">
-                                <label for="student-signup-name">Full Name</label>
-                                <input type="text" id="student-signup-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="student-signup-email">Email</label>
-                                <input type="email" id="student-signup-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="student-signup-roll">Roll Number</label>
-                                <input type="text" id="student-signup-roll" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="student-signup-password">Password</label>
-                                <input type="password" id="student-signup-password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Sign Up</button>
-                            <div class="form-message"></div>
-                        </form>
-                    </div>
-
-                    <div id="teacher-auth" class="auth-form">
-                        <div class="form-toggle">
-                            <button class="toggle-btn active" data-form="login">Login</button>
-                            <button class="toggle-btn" data-form="signup">Sign Up</button>
-                        </div>
-                        
-                        <form id="teacher-login-form" class="form active">
-                            <h2>Teacher Login</h2>
-                            <div class="form-group">
-                                <label for="teacher-login-email">Email</label>
-                                <input type="email" id="teacher-login-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="teacher-login-password">Password</label>
-                                <input type="password" id="teacher-login-password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Login</button>
-                            <div class="form-message"></div>
-                        </form>
-
-                        <form id="teacher-signup-form" class="form">
-                            <h2>Teacher Sign Up</h2>
-                            <div class="form-group">
-                                <label for="teacher-signup-name">Full Name</label>
-                                <input type="text" id="teacher-signup-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="teacher-signup-email">Email</label>
-                                <input type="email" id="teacher-signup-email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="teacher-signup-dept">Department</label>
-                                <input type="text" id="teacher-signup-dept" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="teacher-signup-password">Password</label>
-                                <input type="password" id="teacher-signup-password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Sign Up</button>
-                            <div class="form-message"></div>
-                        </form>
-                    </div>
+                <div class="hero-card teacher-card" data-tilt>
+                    <div class="card-icon">👨‍🏫</div>
+                    <h3>Teacher Portal</h3>
+                    <p>Manage classes and track student attendance</p>
+                    <a href="teacher-login.html" class="btn btn-secondary btn-animated">
+                        <span>Enter as Teacher</span>
+                        <div class="btn-ripple"></div>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div id="student-dashboard" class="section">
-            <nav class="navbar">
-                <div class="nav-brand">Attendance System</div>
-                <div class="nav-user">
-                    <span id="student-name-display"></span>
-                    <button id="student-logout" class="btn btn-secondary">Logout</button>
-                </div>
-            </nav>
-
-            <div class="dashboard-content">
-                <div class="dashboard-header">
-                    <h2>My Classes</h2>
-                    <div class="current-time">
-                        <span>Current Time: </span>
-                        <span id="current-time-display"></span>
-                    </div>
-                </div>
-
-                <div class="join-class-section">
-                    <h3>Join a Class</h3>
-                    <form id="join-class-form">
-                        <div class="form-row">
-                            <input type="text" id="class-code" placeholder="Enter Class Code" required>
-                            <button type="submit" class="btn btn-primary">Join Class</button>
-                        </div>
-                        <div class="form-message"></div>
-                    </form>
-                </div>
-
-                <div id="student-classes-list" class="classes-grid"></div>
+        <div class="hero-features" id="features">
+            <div class="feature-item">
+                <div class="feature-icon">⏰</div>
+                <h4>Time-Bound Sessions</h4>
+                <p>Set specific time windows for attendance marking</p>
             </div>
-        </div>
-
-        <div id="teacher-dashboard" class="section">
-            <nav class="navbar">
-                <div class="nav-brand">Attendance System - Teacher</div>
-                <div class="nav-user">
-                    <span id="teacher-name-display"></span>
-                    <button id="teacher-logout" class="btn btn-secondary">Logout</button>
-                </div>
-            </nav>
-
-            <div class="dashboard-content">
-                <div class="dashboard-tabs">
-                    <button class="dash-tab-btn active" data-tab="classes">My Classes</button>
-                    <button class="dash-tab-btn" data-tab="create">Create Class</button>
-                    <button class="dash-tab-btn" data-tab="attendance">Attendance Dashboard</button>
-                </div>
-
-                <div id="classes-tab" class="dash-tab-content active">
-                    <div class="dashboard-header">
-                        <h2>My Classes</h2>
-                    </div>
-                    <div id="teacher-classes-list" class="classes-grid"></div>
-                </div>
-
-                <div id="create-tab" class="dash-tab-content">
-                    <div class="dashboard-header">
-                        <h2>Create New Class</h2>
-                    </div>
-                    <form id="create-class-form" class="form-large">
-                        <div class="form-group">
-                            <label for="class-name">Class Name</label>
-                            <input type="text" id="class-name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="class-subject">Subject</label>
-                            <input type="text" id="class-subject" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="class-section">Section</label>
-                            <input type="text" id="class-section" placeholder="e.g., A, B, C" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Create Class</button>
-                        <div class="form-message"></div>
-                    </form>
-                </div>
-
-                <div id="attendance-tab" class="dash-tab-content">
-                    <div class="dashboard-header">
-                        <h2>Attendance Dashboard</h2>
-                    </div>
-                    <div id="attendance-dashboard-content">
-                        <div class="dashboard-filters">
-                            <select id="class-filter" class="filter-select">
-                                <option value="">Select a class</option>
-                            </select>
-                        </div>
-                        <div id="attendance-overview"></div>
-                    </div>
-                </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <h4>Real-time Tracking</h4>
+                <p>Monitor attendance instantly with live updates</p>
             </div>
-        </div>
-
-        <div id="class-detail-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2 id="modal-class-title"></h2>
-                
-                <div class="modal-tabs">
-                    <button class="modal-tab-btn active" data-tab="info">Class Info</button>
-                    <button class="modal-tab-btn" data-tab="sessions">Attendance Sessions</button>
-                    <button class="modal-tab-btn" data-tab="students">Students</button>
-                </div>
-
-                <div id="info-modal-tab" class="modal-tab-content active">
-                    <div class="class-info-display">
-                        <p><strong>Subject:</strong> <span id="modal-subject"></span></p>
-                        <p><strong>Section:</strong> <span id="modal-section"></span></p>
-                        <p><strong>Class Code:</strong> <span id="modal-code"></span></p>
-                        <p><strong>Total Students:</strong> <span id="modal-student-count"></span></p>
-                    </div>
-                </div>
-
-                <div id="sessions-modal-tab" class="modal-tab-content">
-                    <div class="session-form">
-                        <h3>Create Attendance Session</h3>
-                        <form id="create-session-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="session-date">Date</label>
-                                    <input type="date" id="session-date" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="session-start-time">Start Time</label>
-                                    <input type="time" id="session-start-time" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="session-end-time">End Time</label>
-                                    <input type="time" id="session-end-time" required>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Create Session</button>
-                        </form>
-                    </div>
-                    <div id="sessions-list"></div>
-                </div>
-
-                <div id="students-modal-tab" class="modal-tab-content">
-                    <div id="class-students-list"></div>
-                </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <h4>Secure Access</h4>
+                <p>Protected authentication for both students and teachers</p>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="cursor-effects.js"></script>
 </body>
 </html>

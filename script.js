@@ -1,7 +1,7 @@
 class AttendanceSystem {
-    constructor() {
+    constructor(roleType = null) {
         this.currentUser = null;
-        this.currentRole = null;
+        this.currentRole = roleType;
         this.currentClassId = null;
         this.init();
     }
@@ -9,8 +9,11 @@ class AttendanceSystem {
     init() {
         this.initializeStorage();
         this.setupEventListeners();
-        this.checkExistingSession();
         this.updateCurrentTime();
+    }
+
+    initDashboard() {
+        this.checkExistingSession();
     }
 
     initializeStorage() {
@@ -29,61 +32,97 @@ class AttendanceSystem {
     }
 
     setupEventListeners() {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchRole(e.target.dataset.role));
+        const toggleTabs = document.querySelectorAll('.toggle-tab');
+        toggleTabs.forEach(tab => {
+            tab.addEventListener('click', () => this.toggleAuthForm(tab));
         });
 
-        document.querySelectorAll('.toggle-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.toggleAuthForm(e.target));
+        const studentLoginForm = document.getElementById('student-login-form');
+        if (studentLoginForm) {
+            studentLoginForm.addEventListener('submit', (e) => this.handleStudentLogin(e));
+        }
+
+        const studentSignupForm = document.getElementById('student-signup-form');
+        if (studentSignupForm) {
+            studentSignupForm.addEventListener('submit', (e) => this.handleStudentSignup(e));
+        }
+
+        const teacherLoginForm = document.getElementById('teacher-login-form');
+        if (teacherLoginForm) {
+            teacherLoginForm.addEventListener('submit', (e) => this.handleTeacherLogin(e));
+        }
+
+        const teacherSignupForm = document.getElementById('teacher-signup-form');
+        if (teacherSignupForm) {
+            teacherSignupForm.addEventListener('submit', (e) => this.handleTeacherSignup(e));
+        }
+
+        const studentLogout = document.getElementById('student-logout');
+        if (studentLogout) {
+            studentLogout.addEventListener('click', () => this.logout());
+        }
+
+        const teacherLogout = document.getElementById('teacher-logout');
+        if (teacherLogout) {
+            teacherLogout.addEventListener('click', () => this.logout());
+        }
+
+        const joinClassForm = document.getElementById('join-class-form');
+        if (joinClassForm) {
+            joinClassForm.addEventListener('submit', (e) => this.handleJoinClass(e));
+        }
+
+        const createClassForm = document.getElementById('create-class-form');
+        if (createClassForm) {
+            createClassForm.addEventListener('submit', (e) => this.handleCreateClass(e));
+        }
+
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tab = item.dataset.tab;
+                if (tab) {
+                    this.switchDashboardTab(tab);
+                }
+            });
         });
 
-        document.getElementById('student-login-form').addEventListener('submit', (e) => this.handleStudentLogin(e));
-        document.getElementById('student-signup-form').addEventListener('submit', (e) => this.handleStudentSignup(e));
-        document.getElementById('teacher-login-form').addEventListener('submit', (e) => this.handleTeacherLogin(e));
-        document.getElementById('teacher-signup-form').addEventListener('submit', (e) => this.handleTeacherSignup(e));
-
-        document.getElementById('student-logout').addEventListener('click', () => this.logout());
-        document.getElementById('teacher-logout').addEventListener('click', () => this.logout());
-
-        document.getElementById('join-class-form').addEventListener('submit', (e) => this.handleJoinClass(e));
-        document.getElementById('create-class-form').addEventListener('submit', (e) => this.handleCreateClass(e));
-
-        document.querySelectorAll('.dash-tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchDashboardTab(e.target.dataset.tab));
+        const modalTabs = document.querySelectorAll('.modal-tab-btn');
+        modalTabs.forEach(btn => {
+            btn.addEventListener('click', () => this.switchModalTab(btn.dataset.tab));
         });
 
-        document.querySelectorAll('.modal-tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchModalTab(e.target.dataset.tab));
-        });
+        const closeModal = document.querySelector('.close-modal');
+        if (closeModal) {
+            closeModal.addEventListener('click', () => this.closeModal());
+        }
 
-        document.querySelector('.close-modal').addEventListener('click', () => this.closeModal());
-
-        document.getElementById('create-session-form').addEventListener('submit', (e) => this.handleCreateSession(e));
+        const createSessionForm = document.getElementById('create-session-form');
+        if (createSessionForm) {
+            createSessionForm.addEventListener('submit', (e) => this.handleCreateSession(e));
+        }
 
         window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
+            const modal = document.getElementById('class-detail-modal');
+            if (e.target === modal) {
                 this.closeModal();
             }
         });
     }
 
-    switchRole(role) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`[data-role="${role}"]`).classList.add('active');
+    toggleAuthForm(tab) {
+        const parent = tab.closest('.auth-card');
+        const formType = tab.dataset.form;
 
-        document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-        document.getElementById(`${role}-auth`).classList.add('active');
-    }
+        parent.querySelectorAll('.toggle-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
 
-    toggleAuthForm(btn) {
-        const parent = btn.closest('.auth-form');
-        const formType = btn.dataset.form;
-
-        parent.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        parent.querySelectorAll('.form').forEach(form => form.classList.remove('active'));
-        parent.querySelector(`#${parent.id.replace('-auth', '')}-${formType}-form`).classList.add('active');
+        parent.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+        const targetForm = parent.querySelector(`#${this.currentRole}-${formType}-form`);
+        if (targetForm) {
+            targetForm.classList.add('active');
+        }
     }
 
     handleStudentSignup(e) {
@@ -116,8 +155,8 @@ class AttendanceSystem {
         e.target.reset();
 
         setTimeout(() => {
-            const parent = e.target.closest('.auth-form');
-            parent.querySelector('[data-form="login"]').click();
+            const loginTab = document.querySelector('.toggle-tab[data-form="login"]');
+            if (loginTab) loginTab.click();
         }, 1500);
     }
 
@@ -134,7 +173,7 @@ class AttendanceSystem {
             this.currentRole = 'student';
             sessionStorage.setItem('currentUser', JSON.stringify(student));
             sessionStorage.setItem('currentRole', 'student');
-            this.showDashboard('student');
+            window.location.href = 'student-dashboard.html';
         } else {
             this.showMessage(e.target, 'Invalid email or password', 'error');
         }
@@ -170,8 +209,8 @@ class AttendanceSystem {
         e.target.reset();
 
         setTimeout(() => {
-            const parent = e.target.closest('.auth-form');
-            parent.querySelector('[data-form="login"]').click();
+            const loginTab = document.querySelector('.toggle-tab[data-form="login"]');
+            if (loginTab) loginTab.click();
         }, 1500);
     }
 
@@ -188,7 +227,7 @@ class AttendanceSystem {
             this.currentRole = 'teacher';
             sessionStorage.setItem('currentUser', JSON.stringify(teacher));
             sessionStorage.setItem('currentRole', 'teacher');
-            this.showDashboard('teacher');
+            window.location.href = 'teacher-dashboard.html';
         } else {
             this.showMessage(e.target, 'Invalid email or password', 'error');
         }
@@ -201,19 +240,26 @@ class AttendanceSystem {
         if (user && role) {
             this.currentUser = JSON.parse(user);
             this.currentRole = role;
-            this.showDashboard(role);
+            this.loadDashboard();
+        } else {
+            if (window.location.pathname.includes('dashboard')) {
+                window.location.href = 'index.html';
+            }
         }
     }
 
-    showDashboard(role) {
-        document.getElementById('auth-section').classList.remove('active');
-        if (role === 'student') {
-            document.getElementById('student-dashboard').classList.add('active');
-            document.getElementById('student-name-display').textContent = this.currentUser.name;
+    loadDashboard() {
+        if (this.currentRole === 'student') {
+            const nameDisplay = document.getElementById('student-name-display');
+            if (nameDisplay) {
+                nameDisplay.textContent = this.currentUser.name;
+            }
             this.loadStudentClasses();
-        } else {
-            document.getElementById('teacher-dashboard').classList.add('active');
-            document.getElementById('teacher-name-display').textContent = this.currentUser.name;
+        } else if (this.currentRole === 'teacher') {
+            const nameDisplay = document.getElementById('teacher-name-display');
+            if (nameDisplay) {
+                nameDisplay.textContent = this.currentUser.name;
+            }
             this.loadTeacherClasses();
             this.loadAttendanceDashboard();
         }
@@ -224,9 +270,7 @@ class AttendanceSystem {
         this.currentRole = null;
         sessionStorage.removeItem('currentUser');
         sessionStorage.removeItem('currentRole');
-
-        document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-        document.getElementById('auth-section').classList.add('active');
+        window.location.href = 'index.html';
     }
 
     handleJoinClass(e) {
@@ -305,6 +349,8 @@ class AttendanceSystem {
 
     loadStudentClasses() {
         const container = document.getElementById('student-classes-list');
+        if (!container) return;
+
         const classes = JSON.parse(localStorage.getItem('classes'));
         const studentClasses = classes.filter(c => c.students.includes(this.currentUser.id));
 
@@ -324,7 +370,7 @@ class AttendanceSystem {
             return `
                 <div class="class-card">
                     <div class="class-card-header">
-                        <h3 class="class-card-title">${classData.name}</h3>
+                        <h3>${classData.name}</h3>
                         <p class="class-card-subtitle">${classData.subject} - Section ${classData.section}</p>
                     </div>
                     <div class="class-card-info">
@@ -334,12 +380,13 @@ class AttendanceSystem {
                     ${activeSessions.length > 0 ? `
                         <div class="class-card-actions">
                             ${activeSessions.map(session => `
-                                <button class="btn btn-success" onclick="system.markAttendance('${classData.id}', '${session.id}')">
-                                    Mark Present
+                                <button class="btn btn-primary btn-animated" onclick="system.markAttendance('${classData.id}', '${session.id}')">
+                                    <span>Mark Present</span>
+                                    <div class="btn-ripple"></div>
                                 </button>
                             `).join('')}
                         </div>
-                    ` : '<p style="color: #666; font-size: 14px;">No active attendance sessions</p>'}
+                    ` : '<p style="color: #718096; font-size: 14px;">No active attendance sessions</p>'}
                 </div>
             `;
         }).join('');
@@ -347,6 +394,8 @@ class AttendanceSystem {
 
     loadTeacherClasses() {
         const container = document.getElementById('teacher-classes-list');
+        if (!container) return;
+
         const classes = JSON.parse(localStorage.getItem('classes'));
         const teacherClasses = classes.filter(c => c.teacherId === this.currentUser.id);
 
@@ -364,7 +413,7 @@ class AttendanceSystem {
         container.innerHTML = teacherClasses.map(classData => `
             <div class="class-card" onclick="system.openClassModal('${classData.id}')">
                 <div class="class-card-header">
-                    <h3 class="class-card-title">${classData.name}</h3>
+                    <h3>${classData.name}</h3>
                     <p class="class-card-subtitle">${classData.subject} - Section ${classData.section}</p>
                 </div>
                 <div class="class-card-info">
@@ -442,7 +491,10 @@ class AttendanceSystem {
 
         document.getElementById('class-detail-modal').classList.add('active');
 
-        document.getElementById('session-date').valueAsDate = new Date();
+        const sessionDate = document.getElementById('session-date');
+        if (sessionDate) {
+            sessionDate.valueAsDate = new Date();
+        }
     }
 
     closeModal() {
@@ -459,11 +511,14 @@ class AttendanceSystem {
     }
 
     switchDashboardTab(tab) {
-        document.querySelectorAll('.dash-tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.dash-tab-btn[data-tab="${tab}"]`).classList.add('active');
+        document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+        document.querySelector(`.menu-item[data-tab="${tab}"]`).classList.add('active');
 
-        document.querySelectorAll('.dash-tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${tab}-tab`).classList.add('active');
+        document.querySelectorAll('.dashboard-tab').forEach(content => content.classList.remove('active'));
+        const tabContent = document.getElementById(`${tab}-tab`);
+        if (tabContent) {
+            tabContent.classList.add('active');
+        }
 
         if (tab === 'attendance') {
             this.loadAttendanceDashboard();
@@ -500,107 +555,101 @@ class AttendanceSystem {
         alert('Attendance session created successfully!');
         e.target.reset();
         this.loadClassSessions(this.currentClassId);
-
-        document.getElementById('session-date').valueAsDate = new Date();
     }
 
     loadClassSessions(classId) {
         const container = document.getElementById('sessions-list');
+        if (!container) return;
+
         const classes = JSON.parse(localStorage.getItem('classes'));
         const classData = classes.find(c => c.id === classId);
 
         if (!classData.sessions || classData.sessions.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>No attendance sessions created yet</p>
-                </div>
-            `;
+            container.innerHTML = '<p style="text-align: center; color: #a0aec0; padding: 20px;">No sessions created yet</p>';
             return;
         }
 
-        const sessions = classData.sessions.sort((a, b) => 
-            new Date(`${b.date} ${b.startTime}`) - new Date(`${a.date} ${a.startTime}`)
-        );
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
+        const currentTime = now.getHours() * 60 + now.getMinutes();
 
-        container.innerHTML = sessions.map(session => {
-            const status = this.getSessionStatus(session);
-            const attendance = this.getSessionAttendance(classId, session.id);
-            
+        container.innerHTML = classData.sessions.map(session => {
+            let status = 'upcoming';
+            let statusClass = '';
+
+            if (session.date === currentDate) {
+                const [startHour, startMin] = session.startTime.split(':').map(Number);
+                const [endHour, endMin] = session.endTime.split(':').map(Number);
+                const startMinutes = startHour * 60 + startMin;
+                const endMinutes = endHour * 60 + endMin;
+
+                if (currentTime >= startMinutes && currentTime <= endMinutes) {
+                    status = 'active';
+                    statusClass = 'active';
+                } else if (currentTime > endMinutes) {
+                    status = 'expired';
+                    statusClass = 'expired';
+                }
+            } else if (session.date < currentDate) {
+                status = 'expired';
+                statusClass = 'expired';
+            }
+
+            const attendance = JSON.parse(localStorage.getItem('attendance'));
+            const presentCount = attendance.filter(a => a.sessionId === session.id).length;
+
             return `
-                <div class="session-card ${status}">
+                <div class="session-card ${statusClass}">
                     <div class="session-header">
                         <div>
-                            <strong>📅 ${this.formatDate(session.date)}</strong>
-                            <div class="session-info">⏰ ${session.startTime} - ${session.endTime}</div>
+                            <strong>📅 ${session.date}</strong>
+                            <p style="color: #718096; font-size: 14px; margin-top: 5px;">
+                                🕐 ${session.startTime} - ${session.endTime}
+                            </p>
                         </div>
                         <span class="status-badge ${status}">${status}</span>
                     </div>
-                    <div class="session-info">
-                        Present: ${attendance.present} / ${classData.students.length} students
+                    <div style="margin-top: 10px; color: #718096; font-size: 14px;">
+                        Present: ${presentCount} / ${classData.students.length}
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    getSessionStatus(session) {
-        const now = new Date();
-        const currentDate = now.toISOString().split('T')[0];
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-
-        if (session.date > currentDate) return 'upcoming';
-        if (session.date < currentDate) return 'expired';
-
-        const [startHour, startMin] = session.startTime.split(':').map(Number);
-        const [endHour, endMin] = session.endTime.split(':').map(Number);
-        const startMinutes = startHour * 60 + startMin;
-        const endMinutes = endHour * 60 + endMin;
-
-        if (currentTime < startMinutes) return 'upcoming';
-        if (currentTime > endMinutes) return 'expired';
-        return 'active';
-    }
-
-    getSessionAttendance(classId, sessionId) {
-        const attendance = JSON.parse(localStorage.getItem('attendance'));
-        const sessionAttendance = attendance.filter(a => 
-            a.classId === classId && a.sessionId === sessionId
-        );
-
-        return {
-            present: sessionAttendance.length,
-            records: sessionAttendance
-        };
-    }
-
     loadClassStudents(classId) {
         const container = document.getElementById('class-students-list');
+        if (!container) return;
+
         const classes = JSON.parse(localStorage.getItem('classes'));
-        const students = JSON.parse(localStorage.getItem('students'));
         const classData = classes.find(c => c.id === classId);
+        const students = JSON.parse(localStorage.getItem('students'));
 
         if (classData.students.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>No students enrolled yet</p>
-                </div>
-            `;
+            container.innerHTML = '<p style="text-align: center; color: #a0aec0; padding: 20px;">No students enrolled yet</p>';
             return;
         }
 
         const classStudents = students.filter(s => classData.students.includes(s.id));
 
         container.innerHTML = classStudents.map(student => {
-            const studentAttendance = this.calculateStudentAttendance(classId, student.id);
+            const attendance = JSON.parse(localStorage.getItem('attendance'));
+            const studentAttendance = attendance.filter(a => 
+                a.studentId === student.id && 
+                a.classId === classId
+            );
+
             return `
-                <div class="student-item">
-                    <div class="student-info">
-                        <h4>${student.name}</h4>
-                        <p>Roll: ${student.rollNumber} | Email: ${student.email}</p>
-                    </div>
-                    <div>
-                        <span class="status-badge ${studentAttendance.percentage >= 75 ? 'present' : 'absent'}">
-                            ${studentAttendance.percentage.toFixed(1)}% Attendance
+                <div class="session-card">
+                    <div class="session-header">
+                        <div>
+                            <strong>👤 ${student.name}</strong>
+                            <p style="color: #718096; font-size: 14px; margin-top: 5px;">
+                                Roll: ${student.rollNumber} | Email: ${student.email}
+                            </p>
+                        </div>
+                        <span class="status-badge info">
+                            ${studentAttendance.length} Sessions
                         </span>
                     </div>
                 </div>
@@ -608,169 +657,109 @@ class AttendanceSystem {
         }).join('');
     }
 
-    calculateStudentAttendance(classId, studentId) {
-        const classes = JSON.parse(localStorage.getItem('classes'));
-        const attendance = JSON.parse(localStorage.getItem('attendance'));
-        const classData = classes.find(c => c.id === classId);
-
-        if (!classData.sessions || classData.sessions.length === 0) {
-            return { present: 0, total: 0, percentage: 0 };
-        }
-
-        const totalSessions = classData.sessions.length;
-        const presentSessions = attendance.filter(a => 
-            a.classId === classId && a.studentId === studentId
-        ).length;
-
-        return {
-            present: presentSessions,
-            total: totalSessions,
-            percentage: (presentSessions / totalSessions) * 100
-        };
-    }
-
     loadAttendanceDashboard() {
+        const filterSelect = document.getElementById('class-filter');
+        if (!filterSelect) return;
+
         const classes = JSON.parse(localStorage.getItem('classes'));
         const teacherClasses = classes.filter(c => c.teacherId === this.currentUser.id);
 
-        const filterSelect = document.getElementById('class-filter');
         filterSelect.innerHTML = '<option value="">Select a class</option>' +
-            teacherClasses.map(c => `<option value="${c.id}">${c.name} - ${c.section}</option>`).join('');
+            teacherClasses.map(c => `<option value="${c.id}">${c.name} - ${c.subject}</option>`).join('');
 
-        filterSelect.onchange = (e) => {
+        filterSelect.addEventListener('change', (e) => {
             if (e.target.value) {
-                this.displayClassAttendance(e.target.value);
-            } else {
-                document.getElementById('attendance-overview').innerHTML = '';
+                this.showAttendanceOverview(e.target.value);
             }
-        };
+        });
     }
 
-    displayClassAttendance(classId) {
+    showAttendanceOverview(classId) {
         const container = document.getElementById('attendance-overview');
-        const classes = JSON.parse(localStorage.getItem('classes'));
-        const students = JSON.parse(localStorage.getItem('students'));
-        const classData = classes.find(c => c.id === classId);
+        if (!container) return;
 
-        if (classData.students.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>No students enrolled in this class</p>
-                </div>
-            `;
+        const classes = JSON.parse(localStorage.getItem('classes'));
+        const classData = classes.find(c => c.id === classId);
+        const students = JSON.parse(localStorage.getItem('students'));
+        const attendance = JSON.parse(localStorage.getItem('attendance'));
+
+        if (!classData.sessions || classData.sessions.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #a0aec0; padding: 20px;">No sessions created yet</p>';
             return;
         }
 
         const classStudents = students.filter(s => classData.students.includes(s.id));
-        const totalSessions = classData.sessions ? classData.sessions.length : 0;
-
-        let totalPresent = 0;
-        let totalPossible = totalSessions * classStudents.length;
-
-        const attendanceData = classStudents.map(student => {
-            const attendance = this.calculateStudentAttendance(classId, student.id);
-            totalPresent += attendance.present;
-            return {
-                student,
-                attendance
-            };
-        });
-
-        const averageAttendance = totalPossible > 0 ? (totalPresent / totalPossible * 100).toFixed(1) : 0;
 
         container.innerHTML = `
-            <div class="attendance-stats">
-                <div class="stat-card">
-                    <div class="stat-value">${classStudents.length}</div>
-                    <div class="stat-label">Total Students</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${totalSessions}</div>
-                    <div class="stat-label">Total Sessions</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${averageAttendance}%</div>
-                    <div class="stat-label">Average Attendance</div>
-                </div>
-            </div>
-            <div class="attendance-table">
-                <table>
+            <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: var(--shadow);">
+                <h3 style="margin-bottom: 20px;">${classData.name} - Attendance Overview</h3>
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr>
-                            <th>Roll Number</th>
-                            <th>Student Name</th>
-                            <th>Email</th>
-                            <th>Present</th>
-                            <th>Total</th>
-                            <th>Percentage</th>
-                            <th>Status</th>
+                        <tr style="background: var(--light-bg);">
+                            <th style="padding: 12px; text-align: left;">Student</th>
+                            <th style="padding: 12px; text-align: center;">Sessions Attended</th>
+                            <th style="padding: 12px; text-align: center;">Attendance Rate</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${attendanceData.map(data => `
-                            <tr>
-                                <td>${data.student.rollNumber}</td>
-                                <td>${data.student.name}</td>
-                                <td>${data.student.email}</td>
-                                <td>${data.attendance.present}</td>
-                                <td>${data.attendance.total}</td>
-                                <td>${data.attendance.percentage.toFixed(1)}%</td>
-                                <td>
-                                    <span class="status-badge ${data.attendance.percentage >= 75 ? 'present' : 'absent'}">
-                                        ${data.attendance.percentage >= 75 ? 'Good' : 'Low'}
-                                    </span>
-                                </td>
-                            </tr>
-                        `).join('')}
+                        ${classStudents.map(student => {
+                            const studentAttendance = attendance.filter(a => 
+                                a.studentId === student.id && 
+                                a.classId === classId
+                            );
+                            const rate = classData.sessions.length > 0 
+                                ? Math.round((studentAttendance.length / classData.sessions.length) * 100) 
+                                : 0;
+                            
+                            return `
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px;">
+                                        <strong>${student.name}</strong><br>
+                                        <span style="color: #718096; font-size: 14px;">${student.rollNumber}</span>
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        ${studentAttendance.length} / ${classData.sessions.length}
+                                    </td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span class="status-badge ${rate >= 75 ? 'present' : rate >= 50 ? 'upcoming' : 'absent'}">
+                                            ${rate}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             </div>
         `;
     }
 
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    }
-
     updateCurrentTime() {
         const updateTime = () => {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const element = document.getElementById('current-time-display');
-            if (element) {
-                element.textContent = timeString;
+            const timeDisplay = document.getElementById('current-time-display');
+            if (timeDisplay) {
+                const now = new Date();
+                timeDisplay.textContent = now.toLocaleString();
             }
         };
-
         updateTime();
         setInterval(updateTime, 1000);
-
-        setInterval(() => {
-            if (this.currentRole === 'student') {
-                this.loadStudentClasses();
-            }
-        }, 30000);
     }
 
     showMessage(form, message, type) {
         const messageDiv = form.querySelector('.form-message');
-        messageDiv.textContent = message;
-        messageDiv.className = `form-message ${type}`;
+        if (messageDiv) {
+            messageDiv.textContent = message;
+            messageDiv.className = `form-message ${type}`;
+            messageDiv.style.display = 'block';
 
-        setTimeout(() => {
-            messageDiv.className = 'form-message';
-        }, 5000);
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
     }
 }
 
-const system = new AttendanceSystem();
+if (typeof window !== 'undefined') {
+    window.system = null;
+}

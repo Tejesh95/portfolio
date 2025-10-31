@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-body">
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo-icon">📚</span>
+            <span>AttendanceHub - Teacher</span>
+        </div>
+        <div class="nav-user">
+            <div class="user-avatar">
+                <span id="teacher-name-display"></span>
+            </div>
+            <button id="teacher-logout" class="btn btn-outline btn-animated">
+                <span>Logout</span>
+                <div class="btn-ripple"></div>
+            </button>
+        </div>
+    </nav>
+
+    <div class="dashboard-wrapper">
+        <div class="dashboard-sidebar">
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-tab="classes">
+                    <span class="menu-icon">📚</span>
+                    <span>My Classes</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="create">
+                    <span class="menu-icon">➕</span>
+                    <span>Create Class</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="attendance">
+                    <span class="menu-icon">📊</span>
+                    <span>Attendance</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="dashboard-main">
+            <div id="classes-tab" class="dashboard-tab active">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>My Classes</h1>
+                        <p>View and manage your classes</p>
+                    </div>
+                </div>
+                <div id="teacher-classes-list" class="classes-grid"></div>
+            </div>
+
+            <div id="create-tab" class="dashboard-tab">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Create New Class</h1>
+                        <p>Set up a new class for your students</p>
+                    </div>
+                </div>
+                
+                <div class="create-class-card">
+                    <form id="create-class-form">
+                        <div class="form-row-group">
+                            <div class="form-group">
+                                <label for="class-name">
+                                    <span class="label-icon">📝</span>
+                                    Class Name
+                                </label>
+                                <input type="text" id="class-name" placeholder="e.g., Computer Science 101" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="class-subject">
+                                    <span class="label-icon">📖</span>
+                                    Subject
+                                </label>
+                                <input type="text" id="class-subject" placeholder="e.g., Computer Science" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="class-section">
+                                <span class="label-icon">🎯</span>
+                                Section
+                            </label>
+                            <input type="text" id="class-section" placeholder="e.g., A, B, C" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-animated btn-large">
+                            <span>Create Class</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                        <div class="form-message"></div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="attendance-tab" class="dashboard-tab">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Attendance Dashboard</h1>
+                        <p>Track and analyze student attendance</p>
+                    </div>
+                </div>
+                
+                <div class="attendance-filters">
+                    <select id="class-filter" class="filter-select">
+                        <option value="">Select a class</option>
+                    </select>
+                </div>
+                <div id="attendance-overview"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="class-detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-class-title"></h2>
+            
+            <div class="modal-tabs">
+                <button class="modal-tab-btn active" data-tab="info">
+                    <span>Class Info</span>
+                </button>
+                <button class="modal-tab-btn" data-tab="sessions">
+                    <span>Sessions</span>
+                </button>
+                <button class="modal-tab-btn" data-tab="students">
+                    <span>Students</span>
+                </button>
+            </div>
+
+            <div id="info-modal-tab" class="modal-tab-content active">
+                <div class="class-info-display">
+                    <div class="info-row">
+                        <span class="info-label">Subject:</span>
+                        <span id="modal-subject"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Section:</span>
+                        <span id="modal-section"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Class Code:</span>
+                        <span id="modal-code" class="code-badge"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Total Students:</span>
+                        <span id="modal-student-count"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sessions-modal-tab" class="modal-tab-content">
+                <div class="session-form-card">
+                    <h3>Create Attendance Session</h3>
+                    <form id="create-session-form">
+                        <div class="form-row-group">
+                            <div class="form-group">
+                                <label for="session-date">Date</label>
+                                <input type="date" id="session-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-start-time">Start Time</label>
+                                <input type="time" id="session-start-time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-end-time">End Time</label>
+                                <input type="time" id="session-end-time" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-animated">
+                            <span>Create Session</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </form>
+                </div>
+                <div id="sessions-list"></div>
+            </div>
+
+            <div id="students-modal-tab" class="modal-tab-content">
+                <div id="class-students-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cursor-effects.js"></script>
+    <script src="script.js"></script>
+    <script>
+        const system = new AttendanceSystem('teacher');
+        system.initDashboard();
+    </script>
+</body>
+</html>

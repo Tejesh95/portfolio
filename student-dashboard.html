@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-body">
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo-icon">📚</span>
+            <span>AttendanceHub</span>
+        </div>
+        <div class="nav-user">
+            <div class="user-avatar">
+                <span id="student-name-display"></span>
+            </div>
+            <button id="student-logout" class="btn btn-outline btn-animated">
+                <span>Logout</span>
+                <div class="btn-ripple"></div>
+            </button>
+        </div>
+    </nav>
+
+    <div class="dashboard-wrapper">
+        <div class="dashboard-sidebar">
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active">
+                    <span class="menu-icon">📚</span>
+                    <span>My Classes</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Attendance</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <span class="menu-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="dashboard-main">
+            <div class="dashboard-header">
+                <div>
+                    <h1>Welcome Back!</h1>
+                    <p>Manage your classes and mark attendance</p>
+                </div>
+                <div class="current-time">
+                    <span class="time-icon">⏰</span>
+                    <span id="current-time-display"></span>
+                </div>
+            </div>
+
+            <div class="join-class-card">
+                <div class="card-header">
+                    <h3>Join a New Class</h3>
+                    <p>Enter the class code provided by your teacher</p>
+                </div>
+                <form id="join-class-form">
+                    <div class="join-class-input-group">
+                        <input type="text" id="class-code" placeholder="Enter Class Code" required>
+                        <button type="submit" class="btn btn-primary btn-animated">
+                            <span>Join Class</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+                    <div class="form-message"></div>
+                </form>
+            </div>
+
+            <div class="classes-section">
+                <h2>My Classes</h2>
+                <div id="student-classes-list" class="classes-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cursor-effects.js"></script>
+    <script src="script.js"></script>
+    <script>
+        const system = new AttendanceSystem('student');
+        system.initDashboard();
+    </script>
+</body>
+</html>
